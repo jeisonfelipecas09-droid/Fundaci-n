@@ -60,19 +60,23 @@
 
 .login-side-image {
   display: block;
-  width: 90%;
-  height: 100%;
-  object-fit: cover;
-  margin: auto;
-  color: #ffffff;
-  border-radius: 3px;
-  padding: 10px;
-}
-.login-logo {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
+  margin: auto;
+  border-radius: 3px;
+  padding: 10px;
+  box-sizing: border-box;
+}
+.login-logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 85% center;
   margin: 0;
+  background-color: #f4f7fb;
 }
 
 .subtitle {
