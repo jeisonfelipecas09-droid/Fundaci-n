@@ -192,7 +192,7 @@ function Cuerpo({ view, setView }) {
             <button type="button" className="nav-btn" onClick={nextDate}>→</button>
           </div>
 
-          {view === ' mes' && (
+          {view === 'mes' && (
             <div className="calendar-grid">
               {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((dayName) => (
                 <div key={dayName} className="weekday-name">{dayName}</div>
