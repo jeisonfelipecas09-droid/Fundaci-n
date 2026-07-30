@@ -496,14 +496,30 @@
     color: #f5f7fa;
 }
 
-.mini-events {
-    margin-top: 14px;
+.mini-calendar-panel {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 18px 14px 14px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.mini-events-panel {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    margin-top: 18px;
 }
 
-.mini-events h4 {
+.mini-events-panel > h4 {
     margin: 0;
     color: #14213d;
 }
@@ -512,11 +528,17 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    background: #eef3f7;
-    padding: 6px 8px;
-    border-radius: 8px;
+    background: #f8fbff;
+    padding: 8px 10px;
+    border-radius: 12px;
     color: #334552;
     font-size: 0.82rem;
+}
+
+@media (max-width: 900px) {
+    .mini-events-panel {
+        width: 100%;
+    }
 }
 
 .mini-event-log {

@@ -58,6 +58,7 @@ function Cuerpo({ view, setView }) {
   const [entryNumber, setEntryNumber] = useState('');
   const [entryText, setEntryText] = useState('');
   const [activeFilter, setActiveFilter] = useState('todos');
+  const [selectedEntry, setSelectedEntry] = useState(null);
 
   const monthCells = useMemo(() => getMonthCells(currentDate), [currentDate]);
   const weekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
@@ -70,6 +71,7 @@ function Cuerpo({ view, setView }) {
     if (!entryText.trim()) return;
     if ((entryType === 'RQ' || entryType === 'IC') && !entryNumber.trim()) return;
 
+    const category = entryType === 'Otros' ? 'Otros' : entryType;
     const formattedText = entryType === 'Otros'
       ? `Otros: ${entryText.trim()}`
       : `${entryType} ${entryNumber.trim()}: ${entryText.trim()}`;
@@ -80,6 +82,8 @@ function Cuerpo({ view, setView }) {
         date: currentDate.toDateString(),
         time: entryTime,
         text: formattedText,
+        category,
+        description: entryText.trim(),
       },
     ]);
     setEntryText('');
@@ -95,6 +99,10 @@ function Cuerpo({ view, setView }) {
     setEntryTime('09:00');
     setEntryType('RQ');
     setEntryNumber('');
+  };
+
+  const closeEntryModal = () => {
+    setSelectedEntry(null);
   };
 
   const nextDate = () => {
@@ -137,17 +145,20 @@ function Cuerpo({ view, setView }) {
       time: event.time,
       title: event.title,
       kind: 'agenda',
+      category: 'agenda',
     })),
     ...currentDayEntries.map((entry, index) => ({
       id: `${entry.date}-${entry.time}-${index}-log`,
       time: entry.time,
       title: entry.text,
-      kind: 'bitacora',
+      kind: 'entry',
+      category: entry.category || 'Otros',
+      description: entry.description || '',
     })),
   ].sort((left, right) => left.time.localeCompare(right.time));
   const filteredDayItems = activeFilter === 'todos'
     ? dayItems
-    : dayItems.filter((item) => item.kind === activeFilter);
+    : dayItems.filter((item) => item.kind === 'entry' && item.category === activeFilter);
   const miniItems = [
     ...todayEvents.map((event) => ({
       id: `${event.day}-${event.time}-mini-agenda`,
@@ -317,21 +328,48 @@ function Cuerpo({ view, setView }) {
                   <button type="button" className={activeFilter === 'todos' ? 'filter-btn active' : 'filter-btn'} onClick={() => setActiveFilter('todos')}>
                     Todo
                   </button>
-                  <button type="button" className={activeFilter === 'agenda' ? 'filter-btn active' : 'filter-btn'} onClick={() => setActiveFilter('agenda')}>
-                    Agenda
+                  <button type="button" className={activeFilter === 'RQ' ? 'filter-btn active' : 'filter-btn'} onClick={() => setActiveFilter('RQ')}>
+                    RQ
                   </button>
-                  <button type="button" className={activeFilter === 'bitacora' ? 'filter-btn active' : 'filter-btn'} onClick={() => setActiveFilter('bitacora')}>
-                    Bitácora
+                  <button type="button" className={activeFilter === 'IC' ? 'filter-btn active' : 'filter-btn'} onClick={() => setActiveFilter('IC')}>
+                    IC
                   </button>
                 </div>
                 <div className="time-list">
                   {filteredDayItems.length > 0 ? filteredDayItems.map((item) => (
-                    <div key={item.id} className={`time-item ${item.kind === 'bitacora' ? 'log-item' : 'agenda-item'}`}>
+                    <div key={item.id} className={`time-item ${item.kind === 'entry' ? 'log-item' : 'agenda-item'}`}>
                       <span>{item.time}</span>
-                      <strong>{item.title}</strong>
+                      <button
+                        type="button"
+                        className="filter-btn"
+                        onClick={() => setSelectedEntry(item)}
+                      >
+                        Abrir {item.kind === 'entry' ? item.category : 'Agenda'}
+                      </button>
                     </div>
                   )) : <div className="time-item empty">Sin registros para este día</div>}
                 </div>
+
+                {selectedEntry && (
+                  <div className="create-modal-backdrop" onClick={closeEntryModal}>
+                    <div
+                      className="create-modal"
+                      role="dialog"
+                      aria-modal="true"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <div className="create-modal-header">
+                        <h4>{selectedEntry.category}</h4>
+                        <button type="button" className="create-modal-close" onClick={closeEntryModal}>
+                          ×
+                        </button>
+                      </div>
+                      <div className="create-form">
+                        <p><strong>Descripción:</strong> {selectedEntry.kind === 'entry' ? (selectedEntry.description || selectedEntry.title) : selectedEntry.title}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -340,38 +378,40 @@ function Cuerpo({ view, setView }) {
 
       <div className="SubCuerp" id="subcuerpo2">
         <div className="side-panel">
-          <div className="mini-calendar-header">
-            <div className="mini-nav-row">
-              <button type="button" className="mini-nav-btn" onClick={() => changeMonth(-1)}>←</button>
-              <div>
-                <p className="eyebrow">Calendario</p>
-                <h3>{currentDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}</h3>
+          <div className="mini-calendar-panel">
+            <div className="mini-calendar-header">
+              <div className="mini-nav-row">
+                <button type="button" className="mini-nav-btn" onClick={() => changeMonth(-1)}>←</button>
+                <div>
+                  <p className="eyebrow">Calendario</p>
+                  <h3>{currentDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}</h3>
+                </div>
+                <button type="button" className="mini-nav-btn" onClick={() => changeMonth(1)}>→</button>
               </div>
-              <button type="button" className="mini-nav-btn" onClick={() => changeMonth(1)}>→</button>
+            </div>
+
+            <div className="mini-calendar-grid">
+              {['D', 'L', 'M', 'X', 'J', 'V', 'S'].map((day) => (
+                <span key={day} className="mini-weekday">{day}</span>
+              ))}
+              {getMonthCells(currentDate).map((cell, index) => {
+                const isToday = cell.date.toDateString() === new Date().toDateString();
+                const isSelected = cell.date.toDateString() === selectedDate.toDateString();
+                return (
+                  <button
+                    key={`${cell.date.getFullYear()}-${cell.date.getMonth()}-${cell.date.getDate()}-${index}`}
+                    type="button"
+                    className={cell.currentMonth ? (isSelected ? 'mini-day selected' : isToday ? 'mini-day active' : 'mini-day') : 'mini-day muted'}
+                    onClick={() => changeDate(cell.date)}
+                  >
+                    {cell.date.getDate()}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          <div className="mini-calendar-grid">
-            {['D', 'L', 'M', 'X', 'J', 'V', 'S'].map((day) => (
-              <span key={day} className="mini-weekday">{day}</span>
-            ))}
-            {getMonthCells(currentDate).map((cell, index) => {
-              const isToday = cell.date.toDateString() === new Date().toDateString();
-              const isSelected = cell.date.toDateString() === selectedDate.toDateString();
-              return (
-                <button
-                  key={`${cell.date.getFullYear()}-${cell.date.getMonth()}-${cell.date.getDate()}-${index}`}
-                  type="button"
-                  className={cell.currentMonth ? (isSelected ? 'mini-day selected' : isToday ? 'mini-day active' : 'mini-day') : 'mini-day muted'}
-                  onClick={() => changeDate(cell.date)}
-                >
-                  {cell.date.getDate()}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="mini-events">
+          <div className="mini-events-panel">
             <h4>Hoy</h4>
             {miniItems.length > 0 ? miniItems.map((item) => (
               <div key={item.id} className={`mini-event ${item.kind === 'bitacora' ? 'mini-event-log' : ''}`}>
