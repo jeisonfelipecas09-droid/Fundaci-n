@@ -120,7 +120,8 @@
 }
 .H1{
     text-align: center;
-    font-family: 'sans-serif';
+    font-family: 'Lato', sans-serif;
+    font-weight: 900;
     margin: auto;
     color: white;
     font-size: 40px;

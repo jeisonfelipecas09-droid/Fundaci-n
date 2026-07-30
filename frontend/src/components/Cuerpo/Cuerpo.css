@@ -11,6 +11,7 @@
 .SubCuerp {
     margin-top: 10px !important;
     margin: auto;
+    background:#DDDEE8  !important;
 }
 
 #subcuerpo1 {
@@ -236,7 +237,7 @@
 }
 
 .time-item.log-item {
-    background: #eef5fb;
+    background: #F0F0F8;
     border: 1px solid #c8dff0;
 }
 
@@ -535,6 +536,10 @@
     font-size: 0.82rem;
 }
 
+.mini-event {
+    justify-content: space-between;
+}
+
 @media (max-width: 900px) {
     .mini-events-panel {
         width: 100%;
@@ -542,7 +547,7 @@
 }
 
 .mini-event-log {
-    background: #eef5fb;
+    background: #F0F0F8;
     border: 1px solid #c8dff0;
 }
 
@@ -556,6 +561,13 @@
 .mini-event strong {
     font-size: 0.8rem;
     font-weight: 500;
+}
+
+.mini-event-number {
+    margin-left: 12px;
+    color: #1f3a47;
+    font-weight: 700;
+    white-space: nowrap;
 }
 
 .mini-event small {

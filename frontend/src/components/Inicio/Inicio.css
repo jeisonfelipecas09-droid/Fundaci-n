@@ -55,7 +55,8 @@
   font-size: 60px !important;
   text-align: center;
   margin-bottom: 50px;
-  font-family: LatoBlack;
+  font-family: 'Lato', sans-serif;
+  font-weight: 900;
 }
 
 .login-side-image {
@@ -85,14 +86,16 @@
   font-size: 0.95rem;
   margin-bottom: 30px;
   text-align: left;
-  font-family: LatoBlack;
+  font-family: 'Lato', sans-serif;
+  font-weight: 900;
 }
 .espn {
   color:#C7CDD2;
   font-size: 15px !important;
   text-align: left;
   margin-bottom: 20px;
-  font-family: LatoBlack;
+  font-family: 'Lato', sans-serif;
+  font-weight: 900;
 }
 
 .login-form {

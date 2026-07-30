@@ -84,6 +84,7 @@ function Cuerpo({ view, setView }) {
         text: formattedText,
         category,
         description: entryText.trim(),
+        number: (entryType === 'RQ' || entryType === 'IC') ? entryNumber.trim() : '',
       },
     ]);
     setEntryText('');
@@ -170,7 +171,10 @@ function Cuerpo({ view, setView }) {
       id: `${entry.date}-${entry.time}-${index}-mini-log`,
       time: entry.time,
       title: entry.text,
-      kind: 'bitacora',
+      kind: 'entry',
+      category: entry.category || 'Otros',
+      number: entry.number || '',
+      description: entry.description || '',
     })),
   ].sort((left, right) => left.time.localeCompare(right.time));
 
@@ -411,16 +415,15 @@ function Cuerpo({ view, setView }) {
             </div>
           </div>
 
-          <div className="mini-events-panel">
-            <h4>Hoy</h4>
-            {miniItems.length > 0 ? miniItems.map((item) => (
-              <div key={item.id} className={`mini-event ${item.kind === 'bitacora' ? 'mini-event-log' : ''}`}>
-                <span>{item.time}</span>
-                <strong>{item.title}</strong>
-                <small>{item.kind === 'bitacora' ? 'Bitácora' : 'Agenda'}</small>
-              </div>
-            )) : <p className="empty-state">Sin eventos</p>}
-          </div>
+            <div className="mini-events-panel">
+              <h4>Hoy</h4>
+              {miniItems.length > 0 ? miniItems.map((item) => (
+                <div key={item.id} className={`mini-event ${item.kind === 'entry' ? 'mini-event-log' : ''}`}>
+                  <span>{item.time}</span>
+                  <strong className="mini-event-number">{(item.category === 'RQ' || item.category === 'IC') ? `${item.category} ${item.number}` : (item.number || '')}</strong>
+                </div>
+              )) : <p className="empty-state">Sin eventos</p>}
+            </div>
         </div>
       </div>
     </div>
