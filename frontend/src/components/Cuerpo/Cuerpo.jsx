@@ -1,5 +1,16 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import './Cuerpo.css';
+
+const STORAGE_KEY = 'asignacionesDisponibilidad';
+
+const getAssignmentsFromStorage = () => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+};
 
 const agenda = [
   { day: 3, title: 'Revisión de proyecto', time: '09:00' },
@@ -51,6 +62,7 @@ function getWeekDays(date) {
 function Cuerpo({ view, setView }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [assignments, setAssignments] = useState(getAssignmentsFromStorage);
   const [memoEntries, setMemoEntries] = useState([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [entryTime, setEntryTime] = useState('09:00');
@@ -59,6 +71,16 @@ function Cuerpo({ view, setView }) {
   const [entryText, setEntryText] = useState('');
   const [activeFilter, setActiveFilter] = useState('todos');
   const [selectedEntry, setSelectedEntry] = useState(null);
+
+  useEffect(() => {
+    const syncAssignments = () => setAssignments(getAssignmentsFromStorage());
+    syncAssignments();
+    window.addEventListener('assignmentsUpdated', syncAssignments);
+
+    return () => {
+      window.removeEventListener('assignmentsUpdated', syncAssignments);
+    };
+  }, []);
 
   const monthCells = useMemo(() => getMonthCells(currentDate), [currentDate]);
   const weekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
@@ -216,6 +238,9 @@ function Cuerpo({ view, setView }) {
                 const isToday = cell.date.toDateString() === new Date().toDateString();
                 const isSelected = cell.date.toDateString() === selectedDate.toDateString();
                 const hasEvent = agenda.some((event) => event.day === cell.date.getDate());
+                const dayAssignments = assignments.filter(
+                  (assignment) => assignment.fecha === cell.date.toISOString().slice(0, 10)
+                );
 
                 return (
                   <button
@@ -226,6 +251,18 @@ function Cuerpo({ view, setView }) {
                   >
                     <span className={isToday ? 'day-number today' : 'day-number'}>{cell.date.getDate()}</span>
                     {hasEvent && <span className="event-dot" />}
+                    {dayAssignments.length > 0 && (
+                      <div className="day-assignment-list">
+                        {dayAssignments.slice(0, 2).map((assignment) => (
+                          <span key={`${assignment.id}-${assignment.usuarioNombre}`} className="day-assignment-tag">
+                            {assignment.usuarioNombre.split(' ')[0]}
+                          </span>
+                        ))}
+                        {dayAssignments.length > 2 && (
+                          <span className="day-assignment-more">+{dayAssignments.length - 2}</span>
+                        )}
+                      </div>
+                    )}
                   </button>
                 );
               })}
@@ -329,7 +366,7 @@ function Cuerpo({ view, setView }) {
                 <h5>Agenda y bitácora del día</h5>
                
                 <div className="filter-row">
-                  <button type="button" className={activeFilter === 'todos' ? 'filter-btn active' : 'filter-btn'} onClick={() => setActiveFilter('todos')}>
+                 <button type="button" className={activeFilter === 'todos' ? 'filter-btn active' : 'filter-btn'} onClick={() => setActiveFilter('todos')}>
                     Todo
                   </button>
                   <button type="button" className={activeFilter === 'RQ' ? 'filter-btn active' : 'filter-btn'} onClick={() => setActiveFilter('RQ')}>
@@ -369,7 +406,12 @@ function Cuerpo({ view, setView }) {
                         </button>
                       </div>
                       <div className="create-form">
-                        <p><strong>Descripción:</strong> {selectedEntry.kind === 'entry' ? (selectedEntry.description || selectedEntry.title) : selectedEntry.title}</p>
+                        <label>
+                          Descripción
+                          <div className="description-box">
+                            {selectedEntry.kind === 'entry' ? (selectedEntry.description || selectedEntry.title) : selectedEntry.title}
+                          </div>
+                        </label>
                       </div>
                     </div>
                   </div>
@@ -382,48 +424,39 @@ function Cuerpo({ view, setView }) {
 
       <div className="SubCuerp" id="subcuerpo2">
         <div className="side-panel">
-          <div className="mini-calendar-panel">
-            <div className="mini-calendar-header">
-              <div className="mini-nav-row">
-                <button type="button" className="mini-nav-btn" onClick={() => changeMonth(-1)}>←</button>
-                <div>
-                  <p className="eyebrow">Calendario</p>
-                  <h3>{currentDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}</h3>
-                </div>
-                <button type="button" className="mini-nav-btn" onClick={() => changeMonth(1)}>→</button>
-              </div>
+          <div className="mini-events-panel">
+            <div className="mini-events-header">
+              <p className="eyebrow">Eventos</p>
+              <h3>{dayLabel}</h3>
             </div>
 
-            <div className="mini-calendar-grid">
-              {['D', 'L', 'M', 'X', 'J', 'V', 'S'].map((day) => (
-                <span key={day} className="mini-weekday">{day}</span>
-              ))}
-              {getMonthCells(currentDate).map((cell, index) => {
-                const isToday = cell.date.toDateString() === new Date().toDateString();
-                const isSelected = cell.date.toDateString() === selectedDate.toDateString();
-                return (
-                  <button
-                    key={`${cell.date.getFullYear()}-${cell.date.getMonth()}-${cell.date.getDate()}-${index}`}
-                    type="button"
-                    className={cell.currentMonth ? (isSelected ? 'mini-day selected' : isToday ? 'mini-day active' : 'mini-day') : 'mini-day muted'}
-                    onClick={() => changeDate(cell.date)}
-                  >
-                    {cell.date.getDate()}
-                  </button>
-                );
-              })}
-            </div>
+            {miniItems.length > 0 ? miniItems.map((item) => {
+              const category = item.category || 'agenda';
+              const categoryLabel = item.kind === 'entry'
+                ? (category === 'RQ' || category === 'IC' ? category : 'OTRO')
+                : 'Agenda';
+
+              return (
+                <div
+                  key={item.id}
+                  className={`mini-event ${item.kind === 'entry' ? 'mini-event-log' : 'mini-event-agenda'} ${category === 'RQ' ? 'rq' : category === 'IC' ? 'ic' : ''}`}
+                >
+                  <div className="mini-event-main">
+                    <span className="mini-event-time">{item.time}</span>
+                    <div className="mini-event-copy">
+                      
+                      <small>{ item.description || 'Sin descripción'}</small>
+                    </div>
+                  </div>
+                  <span className="mini-event-number">
+                    {item.kind === 'entry' && (item.category === 'RQ' || item.category === 'IC')
+                      ? `${item.category} ${item.number}`
+                      : (item.number || '')}
+                  </span>
+                </div>
+              );
+            }) : <p className="empty-state">Sin eventos</p>}
           </div>
-
-            <div className="mini-events-panel">
-              <h4>Hoy</h4>
-              {miniItems.length > 0 ? miniItems.map((item) => (
-                <div key={item.id} className={`mini-event ${item.kind === 'entry' ? 'mini-event-log' : ''}`}>
-                  <span>{item.time}</span>
-                  <strong className="mini-event-number">{(item.category === 'RQ' || item.category === 'IC') ? `${item.category} ${item.number}` : (item.number || '')}</strong>
-                </div>
-              )) : <p className="empty-state">Sin eventos</p>}
-            </div>
         </div>
       </div>
     </div>

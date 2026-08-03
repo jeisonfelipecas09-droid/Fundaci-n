@@ -51,7 +51,7 @@ function Header({ onSelectView }) {
                     className="BotonesHeader"
                     onClick={() => navigate('/Disponibilidad')}
                   >
-                    Horario
+                    Inicio
                   </button>
                   <div className="settings-dropdown">
                     <button
@@ -69,7 +69,8 @@ function Header({ onSelectView }) {
                           className="settings-menu-item"
                           onClick={() => {
                             setShowSettingsMenu(false);
-                            navigate('/Ajustes');
+                            if (onSelectView) onSelectView('usuarios');
+                            navigate('/Ajustes', { state: { view: 'usuarios' } });
                           }}
                         >
                           Usuarios
@@ -79,7 +80,8 @@ function Header({ onSelectView }) {
                           className="settings-menu-item"
                           onClick={() => {
                             setShowSettingsMenu(false);
-                            navigate('/Ajustes');
+                            if (onSelectView) onSelectView('elementos');
+                            navigate('/Ajustes', { state: { view: 'elementos' } });
                           }}
                         >
                           Elementos
@@ -89,7 +91,12 @@ function Header({ onSelectView }) {
                   </div>
                 </div>
                 <div className="SubHeader2">
-                  <h1 className="H1">DISPONIBILIDAD</h1>
+                  <div className="title-marquee" aria-label="Disponibilidad">
+                    <div className="title-track">
+                      <h1 className="H1">DISPONIBILIDAD DE ELEMENTOS</h1>
+                      <h1 className="H1">DISPONIBILIDAD DE ELEMENTOS</h1>
+                    </div>
+                  </div>
                 </div>
                 <div className="SubHeader3">
                   <div className="user-dropdown">
