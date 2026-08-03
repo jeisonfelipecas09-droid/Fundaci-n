@@ -26,12 +26,21 @@
   border-left: 0;
 }
 .Izquierda {
+  position: relative;
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   background: #f4f7fb;
+}
+
+.Izquierda::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.38);
+  z-index: 1;
 }
 
 .brand-pill {
@@ -71,6 +80,8 @@
   box-sizing: border-box;
 }
 .login-logo {
+  position: relative;
+  z-index: 0;
   display: block;
   width: 100%;
   height: 100%;

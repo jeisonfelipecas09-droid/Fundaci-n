@@ -166,7 +166,7 @@ function Cajustes() {
     const year = date.getFullYear();
     const month = date.getMonth();
     const firstDay = new Date(year, month, 1);
-    const dayOfWeek = (firstDay.getDay() + 6) % 7;
+    const dayOfWeek = (firstDay.getDay() + 1) % 7;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const prevMonthDays = new Date(year, month, 0).getDate();
     const cells = [];
@@ -393,19 +393,7 @@ function Cajustes() {
                 <button type="button" className="btn-accion btn-editar" onClick={() => handleEditarClick(usuario)}>
                   Editar
                 </button>
-                <button
-                  type="button"
-                  className="btn-accion btn-asignar"
-                  onClick={() => {
-                    setUsuarioSeleccionado(usuario);
-                    setFechasSeleccionadas([]);
-                    setMesAsignacion(new Date());
-                    setFormAsignacion({ elementoId: activosDisponibles[0]?.id || '' });
-                    setMostrarAsignacion(true);
-                  }}
-                >
-                  Asignar
-                </button>
+                
               </div>
             </div>
           ))
@@ -642,14 +630,14 @@ function Cajustes() {
                 </div>
 
                 <div className="date-picker-grid">
-                  {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((day) => (
+                  {['Sáb', 'Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie'].map((day) => (
                     <span key={day} className="date-picker-weekday">{day}</span>
                   ))}
 
                   {obtenerDiasCalendario(mesAsignacion).map((cell) => {
                     const fecha = formatearFechaClave(cell.date);
                     const isSelected = fechasSeleccionadas.includes(fecha);
-                    const estadoFecha = !cell.currentMonth ? null : obtenerDatosFechaElemento(fecha);
+                    const estadoFecha = cell.currentMonth ? obtenerDatosFechaElemento(fecha) : null;
                     const isOccupiedByOther = estadoFecha ? estadoFecha.ocupadaPorOtro : false;
                     const isOccupiedByMe = estadoFecha ? estadoFecha.ocupadaPorMi : false;
 
@@ -666,6 +654,7 @@ function Cajustes() {
                                 ? 'date-picker-day mine'
                                 : 'date-picker-day'
                         }
+                        style={{ visibility: cell.currentMonth ? 'visible' : 'hidden' }}
                         onMouseDown={() => cell.currentMonth && handleCalendarMouseDown(fecha)}
                         onMouseEnter={() => cell.currentMonth && handleCalendarMouseEnter(fecha)}
                         onMouseUp={handleCalendarMouseUp}
@@ -676,6 +665,7 @@ function Cajustes() {
                               ? 'Ya tienes esta fecha asignada para este elemento'
                               : ''
                         }
+                        disabled={!cell.currentMonth}
                       >
                         {cell.date.getDate()}
                       </button>

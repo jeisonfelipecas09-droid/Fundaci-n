@@ -1,0 +1,395 @@
+.horarios-page {
+  display: flex;
+  width: 100%;
+  min-height: calc(100vh - 70px);
+  gap: 20px;
+  padding: 20px;
+  background: #eef3f8;
+  box-sizing: border-box;
+}
+
+.horarios-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background: #ffffff;
+  border: 1px solid #dfe6ee;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.horarios-sidebar {
+  width: 290px;
+  background: #ffffff;
+  border: 1px solid #dfe6ee;
+  border-radius: 16px;
+  padding: 18px 14px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.horarios-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  color: #1f2937;
+}
+
+.horarios-sidebar-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.horarios-sidebar-header span {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.horarios-user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.horario-user-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #dfe6ee;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 10px 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.horario-user-item:hover {
+  transform: translateY(-1px);
+  border-color: #93c5fd;
+  box-shadow: 0 8px 18px rgba(59, 130, 246, 0.08);
+}
+
+.horario-user-item.active {
+  background: #e0ecff;
+  border-color: #5b7ae6;
+  box-shadow: inset 0 0 0 1px rgba(91, 122, 230, 0.16);
+}
+
+.horario-user-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #001698, #2e52d9);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.horarios-topbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.horarios-actions {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+}
+
+.horarios-delete-button,
+.horarios-cancel-button,
+.horarios-confirm-delete-button {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.horarios-delete-button {
+  background: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(220, 38, 38, 0.18);
+}
+
+.horarios-delete-button:hover,
+.horarios-cancel-button:hover,
+.horarios-confirm-delete-button:hover {
+  transform: translateY(-1px);
+}
+
+.horarios-delete-button:hover {
+  box-shadow: 0 10px 20px rgba(220, 38, 38, 0.24);
+}
+
+.horarios-eyebrow {
+  margin: 0 0 6px;
+  color: #64748b;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.horarios-topbar h3 {
+  margin: 0;
+  color: #243244;
+  font-size: 1.8rem;
+}
+
+.horarios-element-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #475569;
+  font-weight: 600;
+}
+
+.horarios-element-selector select {
+  min-width: 220px;
+  border: 1px solid #d0d6df;
+  border-radius: 10px;
+  padding: 9px 12px;
+  background: #f8fafc;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.horarios-calendar-panel {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.horarios-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  color: #1f2937;
+  font-weight: 700;
+}
+
+.horarios-calendar-header button {
+  border: 1px solid #d0d6df;
+  background: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.horarios-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.horarios-weekday {
+  text-align: center;
+  font-size: 0.78rem;
+  color: #64748b;
+  font-weight: 700;
+  padding-bottom: 6px;
+}
+
+.horario-day {
+  border: 1px solid #d9e2ec;
+  background: #ffffff;
+  min-height: 44px;
+  border-radius: 10px;
+  color: #1f2937;
+  font-weight: 700;
+  cursor: default;
+}
+
+.horario-day.muted {
+  opacity: 0.22;
+  background: #eef2f7;
+}
+
+.horario-day.assigned {
+  background: #dbeafe;
+  border-color: #8ab4f8;
+  color: #183f8d;
+  box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.18);
+}
+
+.horarios-assignments {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.horarios-assignments-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #1f2937;
+}
+
+.horarios-assignments-header h4 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.horarios-assignments-header span {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.horarios-assignment-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.horarios-assignment-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #1f2937;
+}
+
+.horario-date-badge {
+  border-radius: 999px;
+  background: #e2e8f0;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.horarios-empty-state {
+  background: white;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  padding: 18px;
+  color: #64748b;
+  text-align: center;
+}
+
+.horarios-delete-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.horarios-delete-modal {
+  width: min(420px, 100%);
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 22px 44px rgba(15, 23, 42, 0.2);
+  padding: 20px;
+}
+
+.horarios-delete-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.horarios-delete-modal-header h3 {
+  margin: 0;
+  color: #1f2937;
+}
+
+.horarios-close-modal {
+  border: none;
+  background: transparent;
+  font-size: 1.8rem;
+  line-height: 1;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.horarios-delete-form {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.horarios-delete-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #475569;
+  font-weight: 600;
+}
+
+.horarios-delete-form input {
+  border: 1px solid #d0d6df;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  color: #1f2937;
+}
+
+.horarios-delete-confirmation {
+  margin: 0 0 18px;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.horarios-delete-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.horarios-cancel-button {
+  background: #e2e8f0;
+  color: #1f2937;
+}
+
+.horarios-confirm-delete-button {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+@media (max-width: 900px) {
+  .horarios-page {
+    flex-direction: column;
+  }
+
+  .horarios-sidebar {
+    width: 100%;
+  }
+
+  .horarios-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

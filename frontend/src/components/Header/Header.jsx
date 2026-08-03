@@ -86,6 +86,16 @@ function Header({ onSelectView }) {
                         >
                           Elementos
                         </button>
+                        <button
+                          type="button"
+                          className="settings-menu-item"
+                          onClick={() => {
+                            setShowSettingsMenu(false);
+                            navigate('/Horarios');
+                          }}
+                        >
+                          Horarios
+                        </button>
                       </div>
                     )}
                   </div>

@@ -41,7 +41,7 @@ const obtenerDiasCalendario = (date) => {
   const year = date.getFullYear();
   const month = date.getMonth();
   const firstDay = new Date(year, month, 1);
-  const dayOfWeek = (firstDay.getDay() + 6) % 7;
+  const dayOfWeek = (firstDay.getDay() + 1) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const prevMonthDays = new Date(year, month, 0).getDate();
   const cells = [];
@@ -78,7 +78,7 @@ function getMonthCells(date) {
   const year = date.getFullYear();
   const month = date.getMonth();
   const firstDay = new Date(year, month, 1);
-  const startingDay = (firstDay.getDay() + 6) % 7;
+  const startingDay = (firstDay.getDay() + 1) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const prevMonthDays = new Date(year, month, 0).getDate();
   const cells = [];
@@ -438,7 +438,7 @@ function Cuerpo({ view, setView }) {
 
           {view === 'mes' && (
             <div className="calendar-grid">
-              {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((dayName) => (
+              {['Sáb', 'Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie'].map((dayName) => (
                 <div key={dayName} className="weekday-name">{dayName}</div>
               ))}
               {monthCells.map((cell) => {
@@ -745,14 +745,14 @@ function Cuerpo({ view, setView }) {
                 </div>
 
                 <div className="date-picker-grid">
-                  {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((day) => (
+                  {['Sáb', 'Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie'].map((day) => (
                     <span key={day} className="date-picker-weekday">{day}</span>
                   ))}
 
                   {obtenerDiasCalendario(mesAsignacion).map((cell) => {
                     const fecha = formatearFechaClave(cell.date);
                     const isSelected = fechasSeleccionadas.includes(fecha);
-                    const estadoFecha = !cell.currentMonth ? null : obtenerDatosFechaElemento(fecha);
+                    const estadoFecha = cell.currentMonth ? obtenerDatosFechaElemento(fecha) : null;
                     const isOccupiedByOther = estadoFecha ? estadoFecha.ocupadaPorOtro : false;
                     const isOccupiedByMe = estadoFecha ? estadoFecha.ocupadaPorMi : false;
 
@@ -769,6 +769,7 @@ function Cuerpo({ view, setView }) {
                                 ? 'date-picker-day mine'
                                 : 'date-picker-day'
                         }
+                        style={{ visibility: cell.currentMonth ? 'visible' : 'hidden' }}
                         onMouseDown={() => cell.currentMonth && handleCalendarMouseDown(fecha)}
                         onMouseEnter={() => cell.currentMonth && handleCalendarMouseEnter(fecha)}
                         onMouseUp={handleCalendarMouseUp}
