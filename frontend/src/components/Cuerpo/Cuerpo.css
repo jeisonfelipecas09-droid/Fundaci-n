@@ -119,6 +119,7 @@
 }
 
 .day-cell {
+    position: relative;
     min-height: 84px;
     border-radius: 14px;
     background: #f5f7fa;
@@ -130,6 +131,7 @@
     border: 1px solid #cfd7df;
     align-items: flex-start;
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    overflow: hidden;
 }
 
 .day-cell:hover {
@@ -155,12 +157,15 @@
 }
 
 .day-assignment-list {
+    position: absolute;
+    top: 8px;
+    right: 8px;
     display: flex;
     flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 4px;
-    margin-top: auto;
-    width: 100%;
-    justify-content: flex-start;
+    max-width: calc(100% - 16px);
+    z-index: 1;
 }
 
 .day-assignment-tag,
@@ -176,6 +181,7 @@
     line-height: 1;
     color: #15364d;
     background: rgba(49, 75, 93, 0.12);
+    box-shadow: 0 4px 10px rgba(49, 75, 93, 0.08);
 }
 
 .day-assignment-more {
@@ -190,6 +196,39 @@
     border-radius: 50%;
     display: grid;
     place-items: center;
+}
+
+.day-cell-assign {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    border: none;
+    border-radius: 999px;
+    background: #314b5d;
+    color: white;
+    padding: 5px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    z-index: 2;
+    transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    box-shadow: 0 8px 18px rgba(49, 75, 93, 0.2);
+}
+
+.day-cell:hover .day-cell-assign,
+.day-cell.selected .day-cell-assign,
+.day-cell:focus-within .day-cell-assign {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.day-cell-assign:hover {
+    background: #233645;
+    box-shadow: 0 12px 20px rgba(49, 75, 93, 0.24);
 }
 
 .event-dot {

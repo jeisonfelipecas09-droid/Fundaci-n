@@ -1,7 +1,25 @@
 import { useEffect, useMemo, useState } from 'react';
 import './Cuerpo.css';
+import '../C-ajustes/Cajustes.css';
 
 const STORAGE_KEY = 'asignacionesDisponibilidad';
+
+const activosDisponibles = [
+  { id: 1, nombre: 'Cámara IP', estado: 'Activo' },
+  { id: 2, nombre: 'Laptop Dell', estado: 'Activo' },
+  { id: 3, nombre: 'Proyector', estado: 'Activo' },
+  { id: 4, nombre: 'Impresora Láser', estado: 'Activo' },
+  { id: 5, nombre: 'Router Wi‑Fi', estado: 'Activo' },
+];
+
+const usuariosAsignables = [
+  { id: 1, nombre: 'Juan Pérez' },
+  { id: 2, nombre: 'María Gómez' },
+  { id: 3, nombre: 'Carlos Ruiz' },
+  { id: 4, nombre: 'Ana Torres' },
+  { id: 5, nombre: 'Luis Morales' },
+  { id: 6, nombre: 'Sofía Díaz' },
+];
 
 const getAssignmentsFromStorage = () => {
   try {
@@ -10,6 +28,41 @@ const getAssignmentsFromStorage = () => {
   } catch {
     return [];
   }
+};
+
+const formatearFechaClave = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const obtenerDiasCalendario = (date) => {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const dayOfWeek = (firstDay.getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const prevMonthDays = new Date(year, month, 0).getDate();
+  const cells = [];
+
+  for (let i = dayOfWeek - 1; i >= 0; i -= 1) {
+    cells.push({
+      date: new Date(year, month - 1, prevMonthDays - i),
+      currentMonth: false,
+    });
+  }
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    cells.push({ date: new Date(year, month, day), currentMonth: true });
+  }
+
+  while (cells.length % 7 !== 0) {
+    const nextDay = cells.length - daysInMonth - dayOfWeek + 1;
+    cells.push({ date: new Date(year, month + 1, nextDay), currentMonth: false });
+  }
+
+  return cells;
 };
 
 const agenda = [
@@ -71,6 +124,14 @@ function Cuerpo({ view, setView }) {
   const [entryText, setEntryText] = useState('');
   const [activeFilter, setActiveFilter] = useState('todos');
   const [selectedEntry, setSelectedEntry] = useState(null);
+  const [mostrarAsignacion, setMostrarAsignacion] = useState(false);
+  const [usuarioAsignacion, setUsuarioAsignacion] = useState(usuariosAsignables[0]?.id || '');
+  const [elementoAsignacion, setElementoAsignacion] = useState(activosDisponibles[0]?.id || '');
+  const [mesAsignacion, setMesAsignacion] = useState(new Date());
+  const [fechasSeleccionadas, setFechasSeleccionadas] = useState([]);
+  const [isMouseDown, setIsMouseDown] = useState(false);
+  const [dragStart, setDragStart] = useState(null);
+  const [dragMode, setDragMode] = useState(null);
 
   useEffect(() => {
     const syncAssignments = () => setAssignments(getAssignmentsFromStorage());
@@ -81,6 +142,152 @@ function Cuerpo({ view, setView }) {
       window.removeEventListener('assignmentsUpdated', syncAssignments);
     };
   }, []);
+
+  const toggleFechaAsignacion = (fecha) => {
+    setFechasSeleccionadas((prev) => {
+      if (prev.includes(fecha)) {
+        return prev.filter((item) => item !== fecha);
+      }
+
+      return [...prev, fecha].sort();
+    });
+  };
+
+  const obtenerDatosFechaElemento = (fecha) => {
+    const elementoId = Number(elementoAsignacion);
+    const usuarioId = Number(usuarioAsignacion);
+
+    if (!elementoId || !usuarioId) {
+      return { ocupadaPorOtro: false, ocupadaPorMi: false, usuarioAsignado: null };
+    }
+
+    const asignaciones = getAssignmentsFromStorage().filter(
+      (asignacion) => Number(asignacion.elementoId) === elementoId && asignacion.fecha === fecha,
+    );
+
+    const asignacionOtraPersona = asignaciones.find(
+      (asignacion) => Number(asignacion.usuarioId) !== usuarioId,
+    );
+
+    const asignacionPropia = asignaciones.find(
+      (asignacion) => Number(asignacion.usuarioId) === usuarioId,
+    );
+
+    return {
+      ocupadaPorOtro: Boolean(asignacionOtraPersona),
+      ocupadaPorMi: Boolean(asignacionPropia),
+      usuarioAsignado: asignacionOtraPersona ? asignacionOtraPersona.usuarioNombre : null,
+    };
+  };
+
+  const seleccionarRango = (fechaInicial, fechaFinal, mode) => {
+    const fechaInicio = new Date(`${fechaInicial}T00:00:00`);
+    const fechaFin = new Date(`${fechaFinal}T00:00:00`);
+
+    const [inicio, fin] = fechaInicio <= fechaFin ? [fechaInicio, fechaFin] : [fechaFin, fechaInicio];
+    const rango = [];
+
+    for (let date = new Date(inicio); date <= fin; date.setDate(date.getDate() + 1)) {
+      rango.push(formatearFechaClave(date));
+    }
+
+    const rangoNoOcupado = rango.filter((dia) => !obtenerDatosFechaElemento(dia).ocupadaPorOtro);
+
+    setFechasSeleccionadas((prev) => {
+      const conjunto = new Set(prev);
+
+      if (mode === 'deselect') {
+        rangoNoOcupado.forEach((dia) => conjunto.delete(dia));
+      } else {
+        rangoNoOcupado.forEach((dia) => conjunto.add(dia));
+      }
+
+      return [...conjunto].sort();
+    });
+  };
+
+  useEffect(() => {
+    const handlePointerUp = () => {
+      setIsMouseDown(false);
+      setDragStart(null);
+      setDragMode(null);
+    };
+
+    window.addEventListener('pointerup', handlePointerUp);
+    return () => window.removeEventListener('pointerup', handlePointerUp);
+  }, []);
+
+  const handleCalendarMouseDown = (fecha) => {
+    const estado = obtenerDatosFechaElemento(fecha);
+    if (estado.ocupadaPorOtro && !estado.ocupadaPorMi) {
+      return;
+    }
+
+    const isSelected = fechasSeleccionadas.includes(fecha);
+    setIsMouseDown(true);
+    setDragStart(fecha);
+    setDragMode(isSelected ? 'deselect' : 'select');
+
+    if (isSelected) {
+      setFechasSeleccionadas((prev) => prev.filter((item) => item !== fecha));
+      return;
+    }
+
+    setFechasSeleccionadas((prev) => [...new Set([...prev, fecha])].sort());
+  };
+
+  const handleCalendarMouseEnter = (fecha) => {
+    if (!isMouseDown || !dragStart || !dragMode) return;
+
+    const estado = obtenerDatosFechaElemento(fecha);
+    if (estado.ocupadaPorOtro && !estado.ocupadaPorMi) {
+      return;
+    }
+
+    seleccionarRango(dragStart, fecha, dragMode);
+  };
+
+  const handleCalendarMouseUp = () => {
+    setIsMouseDown(false);
+    setDragStart(null);
+    setDragMode(null);
+  };
+
+  const openAssignModal = (date) => {
+    setMesAsignacion(new Date(date));
+    setFechasSeleccionadas([]);
+    setMostrarAsignacion(true);
+  };
+
+  const handleAsignacion = (event) => {
+    event.preventDefault();
+
+    if (!usuarioAsignacion || fechasSeleccionadas.length === 0) return;
+
+    const usuario = usuariosAsignables.find((item) => Number(item.id) === Number(usuarioAsignacion));
+    const elemento = activosDisponibles.find((item) => item.id === Number(elementoAsignacion));
+
+    if (!usuario || !elemento) return;
+
+    const guardadas = getAssignmentsFromStorage();
+    const nuevasAsignaciones = fechasSeleccionadas.map((fecha) => ({
+      id: `${Date.now()}-${fecha}`,
+      usuarioId: usuario.id,
+      usuarioNombre: usuario.nombre,
+      elementoId: elemento.id,
+      elementoNombre: elemento.nombre,
+      fecha,
+    }));
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...guardadas, ...nuevasAsignaciones]));
+    window.dispatchEvent(new CustomEvent('assignmentsUpdated'));
+
+    setMostrarAsignacion(false);
+    setFechasSeleccionadas([]);
+    setMesAsignacion(new Date());
+    setUsuarioAsignacion(usuariosAsignables[0]?.id || '');
+    setElementoAsignacion(activosDisponibles[0]?.id || '');
+  };
 
   const monthCells = useMemo(() => getMonthCells(currentDate), [currentDate]);
   const weekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
@@ -243,11 +450,18 @@ function Cuerpo({ view, setView }) {
                 );
 
                 return (
-                  <button
+                  <div
                     key={`${cell.date.getFullYear()}-${cell.date.getMonth()}-${cell.date.getDate()}`}
-                    type="button"
                     className={cell.currentMonth ? (isSelected ? 'day-cell selected' : 'day-cell') : 'day-cell muted'}
                     onClick={() => changeDate(cell.date)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        changeDate(cell.date);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
                   >
                     <span className={isToday ? 'day-number today' : 'day-number'}>{cell.date.getDate()}</span>
                     {hasEvent && <span className="event-dot" />}
@@ -263,7 +477,19 @@ function Cuerpo({ view, setView }) {
                         )}
                       </div>
                     )}
-                  </button>
+                    {cell.currentMonth && (
+                      <button
+                        type="button"
+                        className="day-cell-assign"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openAssignModal(cell.date);
+                        }}
+                      >
+                        Asignar
+                      </button>
+                    )}
+                  </div>
                 );
               })}
             </div>
@@ -459,6 +685,150 @@ function Cuerpo({ view, setView }) {
           </div>
         </div>
       </div>
+
+      {mostrarAsignacion && (
+        <div className="modal-overlay" onClick={() => setMostrarAsignacion(false)}>
+          <div className="modal-content asignar-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Asignar elemento</h2>
+              <button type="button" className="modal-close" onClick={() => setMostrarAsignacion(false)}>
+                ×
+              </button>
+            </div>
+
+            <form className="modal-form" onSubmit={handleAsignacion}>
+              <label>
+                Persona
+                <select
+                  value={usuarioAsignacion}
+                  onChange={(event) => setUsuarioAsignacion(event.target.value)}
+                >
+                  {usuariosAsignables.map((usuario) => (
+                    <option key={usuario.id} value={usuario.id}>
+                      {usuario.nombre}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                Elemento activo
+                <select
+                  value={elementoAsignacion}
+                  onChange={(event) => setElementoAsignacion(event.target.value)}
+                >
+                  {activosDisponibles.map((elemento) => (
+                    <option key={elemento.id} value={elemento.id}>
+                      {elemento.nombre}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <div className="calendar-assignment-picker">
+                <div className="calendar-picker-header">
+                  <button
+                    type="button"
+                    className="calendar-nav-btn"
+                    onClick={() => setMesAsignacion((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
+                  >
+                    ←
+                  </button>
+                  <span>{mesAsignacion.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}</span>
+                  <button
+                    type="button"
+                    className="calendar-nav-btn"
+                    onClick={() => setMesAsignacion((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
+                  >
+                    →
+                  </button>
+                </div>
+
+                <div className="date-picker-grid">
+                  {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((day) => (
+                    <span key={day} className="date-picker-weekday">{day}</span>
+                  ))}
+
+                  {obtenerDiasCalendario(mesAsignacion).map((cell) => {
+                    const fecha = formatearFechaClave(cell.date);
+                    const isSelected = fechasSeleccionadas.includes(fecha);
+                    const estadoFecha = !cell.currentMonth ? null : obtenerDatosFechaElemento(fecha);
+                    const isOccupiedByOther = estadoFecha ? estadoFecha.ocupadaPorOtro : false;
+                    const isOccupiedByMe = estadoFecha ? estadoFecha.ocupadaPorMi : false;
+
+                    return (
+                      <button
+                        key={`${fecha}-${cell.currentMonth ? 'month' : 'other'}`}
+                        type="button"
+                        className={
+                          isSelected
+                            ? 'date-picker-day selected'
+                            : isOccupiedByOther
+                              ? 'date-picker-day occupied'
+                              : isOccupiedByMe
+                                ? 'date-picker-day mine'
+                                : 'date-picker-day'
+                        }
+                        onMouseDown={() => cell.currentMonth && handleCalendarMouseDown(fecha)}
+                        onMouseEnter={() => cell.currentMonth && handleCalendarMouseEnter(fecha)}
+                        onMouseUp={handleCalendarMouseUp}
+                        title={
+                          isOccupiedByOther
+                            ? `Ocupado por ${estadoFecha.usuarioAsignado}`
+                            : isOccupiedByMe
+                              ? 'Ya tienes esta fecha asignada para este elemento'
+                              : ''
+                        }
+                        disabled={!cell.currentMonth}
+                      >
+                        {cell.date.getDate()}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="selection-summary">
+                  <span>Fechas seleccionadas</span>
+                  {fechasSeleccionadas.length > 0 ? (
+                    <div className="selection-chips">
+                      {fechasSeleccionadas.map((fecha) => (
+                        <button
+                          key={fecha}
+                          type="button"
+                          className="date-chip"
+                          onClick={() => toggleFechaAsignacion(fecha)}
+                        >
+                          {new Date(`${fecha}T00:00:00`).toLocaleDateString('es-ES', {
+                            day: '2-digit',
+                            month: 'short',
+                          })}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="selection-empty">Selecciona uno o varios días del calendario.</p>
+                  )}
+                </div>
+
+                <div className="date-legend">
+                  <span><i className="legend-dot free" /> Disponible</span>
+                  <span><i className="legend-dot mine" /> Tu asignación</span>
+                  <span><i className="legend-dot occupied" /> Ocupado por otra persona</span>
+                </div>
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="btn-cancelar" onClick={() => setMostrarAsignacion(false)}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn-guardar" disabled={fechasSeleccionadas.length === 0}>
+                  Guardar asignación
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
